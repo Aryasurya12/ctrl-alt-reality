@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-terminal: var(--terminal);
+  --color-border: var(--border);
+  --color-danger: var(--danger);
+}
+
+@layer base {
+  :root {
+    --background: #050505;
+    --foreground: #f4f4f5;
+    --muted: #737373;
+    --terminal: #4ade80;
+    --border: #27272a;
+    --danger: #ef4444;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--terminal);
+    color: var(--background);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--terminal);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .display-xl {
+    @apply text-[clamp(2.5rem,8vw,6rem)] font-bold tracking-tighter uppercase;
+  }
+  .display-lg {
+    @apply text-[clamp(1.5rem,5vw,4rem)] font-semibold tracking-tight uppercase;
+  }
+  .system-text {
+    @apply font-mono text-sm md:text-base tracking-widest text-terminal uppercase;
+  }
+  .micro-label {
+    @apply font-mono text-[10px] md:text-xs tracking-[0.2em] text-muted uppercase;
+  }
+}
