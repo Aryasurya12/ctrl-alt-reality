@@ -2,6 +2,9 @@
 
 import dynamic from "next/dynamic";
 import { useExperience } from "@/components/providers/ExperienceProvider";
+import { SystemBoot } from "@/components/scenes/SystemBoot/SystemBoot";
+import { Terminal } from "@/components/scenes/Terminal/Terminal";
+import { RetroDesktop } from "@/components/scenes/RetroDesktop/RetroDesktop";
 
 // Dynamically import WebGL to prevent SSR issues
 const WebGLCanvas = dynamic(
@@ -10,32 +13,32 @@ const WebGLCanvas = dynamic(
 );
 
 export default function Home() {
-  const { state } = useExperience();
+  const { state, dispatch } = useExperience();
 
   return (
-    <main className="relative flex flex-col items-center justify-center min-h-screen w-full px-6 py-24 overflow-hidden">
-      <WebGLCanvas />
+    <main className="relative flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden bg-black selection:bg-terminal selection:text-black">
+      
+      {/* 3D Dimensional Teaser (Hidden until FUTURE_TEASER) */}
+      {(state.phase === "FUTURE_TEASER" || process.env.NODE_ENV === "development") && (
+        <WebGLCanvas />
+      )}
 
-      <div className="z-20 flex flex-col items-center text-center max-w-4xl gap-8 pointer-events-none">
-        <div className="flex flex-col gap-2">
-          <p className="micro-label">SYSTEM STATUS: FOUNDATION ONLINE</p>
-          <p className="micro-label">PHASE 01 / SYSTEM FOUNDATION</p>
-        </div>
-
-        <h1 className="display-xl">CTRL+ALT+REALITY</h1>
-        
-        <p className="system-text max-w-lg mt-4">
-          THE WEB WAS NEVER MEANT TO STAY FLAT.
-        </p>
-
-        {/* Debug info to prove provider works */}
-        <div className="absolute bottom-8 left-8 text-left opacity-50">
-          <p className="micro-label">Provider State:</p>
-          <p className="micro-label">Phase: {state.phase}</p>
-          <p className="micro-label">Reduced Motion: {state.reducedMotion ? "TRUE" : "FALSE"}</p>
-          <p className="micro-label">Touch Device: {state.hasTouch ? "TRUE" : "FALSE"}</p>
-        </div>
+      {/* Main Experience Router */}
+      <div className="absolute inset-0 z-10 w-full h-full">
+        {state.phase === "BOOT" && <SystemBoot />}
+        {state.phase === "TERMINAL" && <Terminal />}
+        {(state.phase === "DESKTOP" || state.phase === "FUTURE_TEASER") && <RetroDesktop />}
       </div>
+
+      {/* Development controls */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="absolute bottom-2 left-2 z-50 flex gap-2 text-[10px] font-mono opacity-30 hover:opacity-100 transition-opacity">
+          <button onClick={() => dispatch({type: "SET_PHASE", payload: "BOOT"})} className="border px-1 border-[#444] hover:bg-[#444]">BOOT</button>
+          <button onClick={() => dispatch({type: "SET_PHASE", payload: "TERMINAL"})} className="border px-1 border-[#444] hover:bg-[#444]">TERM</button>
+          <button onClick={() => dispatch({type: "SET_PHASE", payload: "DESKTOP"})} className="border px-1 border-[#444] hover:bg-[#444]">DSKTP</button>
+          <button onClick={() => dispatch({type: "SET_PHASE", payload: "FUTURE_TEASER"})} className="border px-1 border-[#444] hover:bg-[#444]">FUTR</button>
+        </div>
+      )}
     </main>
   );
 }

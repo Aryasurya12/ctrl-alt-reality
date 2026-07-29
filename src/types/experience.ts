@@ -1,16 +1,23 @@
-export type ExperiencePhase = "INTRO" | "EXPLORE" | "LAB" | "CHAOS" | "FINALE";
+export type ExperiencePhase = "BOOT" | "TERMINAL" | "DESKTOP" | "FUTURE_TEASER" | "EXPLORE" | "LAB" | "CHAOS" | "FINALE";
 
 export interface ExperienceState {
   phase: ExperiencePhase;
   isIntroComplete: boolean;
+  displayName: string | null;
   isWebGLReady: boolean;
-  isChaosMode: boolean;
   soundEnabled: boolean;
-  reducedMotion: boolean;
+  prefersReducedMotion: boolean;
   hasTouch: boolean;
+  
+  // Desktop OS State
+  openWindows: string[];
+  activeWindow: string;
+  selectedIcon: string | null;
+  openedAppCount: number;
+  hasSeenDemo: boolean;
 }
 
 export type ExperienceAction = {
   type: string;
-  payload?: any;
+  payload?: unknown;
 };

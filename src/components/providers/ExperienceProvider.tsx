@@ -6,20 +6,30 @@ import { ExperienceState, ExperiencePhase } from "@/types/experience";
 type Action =
   | { type: "SET_PHASE"; payload: ExperiencePhase }
   | { type: "SET_INTRO_COMPLETE"; payload: boolean }
+  | { type: "SET_DISPLAY_NAME"; payload: string }
   | { type: "SET_WEBGL_READY"; payload: boolean }
-  | { type: "SET_CHAOS_MODE"; payload: boolean }
   | { type: "TOGGLE_SOUND" }
   | { type: "SET_REDUCED_MOTION"; payload: boolean }
-  | { type: "SET_HAS_TOUCH"; payload: boolean };
+  | { type: "SET_HAS_TOUCH"; payload: boolean }
+  | { type: "OPEN_WINDOW"; payload: string }
+  | { type: "CLOSE_WINDOW"; payload: string }
+  | { type: "FOCUS_WINDOW"; payload: string }
+  | { type: "SELECT_ICON"; payload: string | null }
+  | { type: "SET_HAS_SEEN_DEMO"; payload: boolean };
 
 const initialState: ExperienceState = {
-  phase: "INTRO",
+  phase: "BOOT",
   isIntroComplete: false,
+  displayName: null,
   isWebGLReady: false,
-  isChaosMode: false,
   soundEnabled: false,
-  reducedMotion: false,
+  prefersReducedMotion: false,
   hasTouch: false,
+  openWindows: [],
+  activeWindow: "",
+  selectedIcon: null,
+  openedAppCount: 0,
+  hasSeenDemo: false,
 };
 
 function experienceReducer(state: ExperienceState, action: Action): ExperienceState {
@@ -28,16 +38,47 @@ function experienceReducer(state: ExperienceState, action: Action): ExperienceSt
       return { ...state, phase: action.payload };
     case "SET_INTRO_COMPLETE":
       return { ...state, isIntroComplete: action.payload };
+    case "SET_DISPLAY_NAME":
+      return { ...state, displayName: action.payload };
     case "SET_WEBGL_READY":
       return { ...state, isWebGLReady: action.payload };
-    case "SET_CHAOS_MODE":
-      return { ...state, isChaosMode: action.payload };
     case "TOGGLE_SOUND":
       return { ...state, soundEnabled: !state.soundEnabled };
     case "SET_REDUCED_MOTION":
-      return { ...state, reducedMotion: action.payload };
+      return { ...state, prefersReducedMotion: action.payload };
     case "SET_HAS_TOUCH":
       return { ...state, hasTouch: action.payload };
+    case "OPEN_WINDOW":
+      if (!state.openWindows.includes(action.payload)) {
+        return { 
+          ...state, 
+          openWindows: [...state.openWindows, action.payload],
+          activeWindow: action.payload,
+          openedAppCount: state.openedAppCount + 1
+        };
+      }
+      return { ...state, activeWindow: action.payload, openWindows: [...state.openWindows.filter(id => id !== action.payload), action.payload] };
+    case "CLOSE_WINDOW":
+      const remainingWindows = state.openWindows.filter((id) => id !== action.payload);
+      return { 
+        ...state, 
+        openWindows: remainingWindows,
+        activeWindow: state.activeWindow === action.payload ? (remainingWindows[remainingWindows.length - 1] || "") : state.activeWindow
+      };
+    case "FOCUS_WINDOW":
+      if (action.payload === "") {
+        return { ...state, activeWindow: "" };
+      }
+      // Reorder to bring to front
+      return { 
+        ...state, 
+        activeWindow: action.payload,
+        openWindows: [...state.openWindows.filter(id => id !== action.payload), action.payload]
+      };
+    case "SELECT_ICON":
+      return { ...state, selectedIcon: action.payload, activeWindow: "" };
+    case "SET_HAS_SEEN_DEMO":
+      return { ...state, hasSeenDemo: action.payload };
     default:
       return state;
   }
