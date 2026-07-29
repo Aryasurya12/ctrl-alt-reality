@@ -39,27 +39,82 @@ export function RetroDesktop() {
     return () => clearInterval(interval);
   }, [state.phase]);
 
-  // Handle FUTURE_TEASER transition
+  // Localized DOM Reaction (Pressure Zone)
+  useEffect(() => {
+    if (state.phase !== "DIMENSIONAL_BREAK") return;
+    
+    // Simulate core moving closer and applying pressure
+    let pressure = 0;
+    const interval = setInterval(() => {
+      // Core approaches from 4.0s to 9.2s in the timeline
+      // We start pressure slightly after start
+      pressure = Math.min(1, pressure + 0.02);
+      
+      if (containerRef.current) {
+        containerRef.current.style.setProperty('--core-pressure', pressure.toString());
+      }
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [state.phase]);
+
+  // Handle FUTURE_TEASER and DIMENSIONAL_BREAK transition
   useEffect(() => {
     if (state.phase === "FUTURE_TEASER" && containerRef.current && desktopRef.current) {
-      const tl = gsap.timeline();
-      
-      tl.to(desktopRef.current, {
-        opacity: 0.2,
+      // Desktop stays flat, background remains solid
+      gsap.to(desktopRef.current, {
+        opacity: 0.8,
         duration: 3,
         ease: "power2.inOut"
-      }, 0);
+      });
 
-      tl.to(containerRef.current, {
-        rotateX: 15,
-        rotateY: -5,
-        scale: 0.95,
-        z: -100,
-        duration: 4,
-        ease: "power3.inOut"
-      }, 0);
+    } else if (state.phase === "DIMENSIONAL_BREAK") {
+      // Core pushes through, localized tear opens
+      if (containerRef.current && desktopRef.current) {
+        const tl = gsap.timeline();
+        
+        // At 8.5s tear opens
+        tl.to(containerRef.current, {
+          "--tear-size": "100%",
+          duration: 3,
+          ease: "power3.in",
+          delay: 8.5
+        });
+
+        // 10.5s desktop layers slowly recede
+        tl.to(containerRef.current, {
+           rotateX: 15,
+           rotateY: -5,
+           z: -400,
+           opacity: 0.1,
+           duration: 4,
+           ease: "power2.out"
+        }, 10.5);
+      }
+    } else if (state.phase === "CORE_INTERACTIVE") {
+      // Keep state from DIMENSIONAL_BREAK if HMR happens
+      gsap.set(containerRef.current, { rotateX: 15, rotateY: -5, z: -400, opacity: 0.1, "--tear-size": "100%" });
+    } else if (state.phase === "CORE_AWAKENING" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY") {
+      if (containerRef.current) {
+        // Drop desktop opacity further and drift backward
+        gsap.to(containerRef.current, {
+          opacity: 0.05,
+          z: -600,
+          rotateX: 20,
+          rotateY: -10,
+          duration: 3,
+          ease: "power2.inOut"
+        });
+        
+        // Add extreme pressure (sucking background grid right)
+        gsap.to(containerRef.current, {
+          "--core-pressure": "2",
+          duration: 3,
+          ease: "power2.inOut"
+        });
+      }
     } else if (state.phase === "DESKTOP" && containerRef.current && desktopRef.current) {
-      gsap.set(containerRef.current, { rotateX: 0, rotateY: 0, scale: 1, z: 0 });
+      gsap.set(containerRef.current, { rotateX: 0, rotateY: 0, scale: 1, z: 0, "--tear-size": "0%" });
       gsap.set(desktopRef.current, { opacity: 1 });
     }
   }, [state.phase]);
@@ -122,26 +177,45 @@ export function RetroDesktop() {
     <div 
       className={cn(
         "w-full h-full relative overflow-hidden transition-all duration-1000",
-        state.phase === "FUTURE_TEASER" ? "bg-transparent pointer-events-none" : "bg-[#080808]"
+        state.phase === "BOOT" || state.phase === "TERMINAL" ? "bg-transparent pointer-events-none" : "bg-[#080808]"
       )}
       onClick={handleDesktopClick}
       style={{ perspective: "1000px" }}
     >
-      <div ref={containerRef} className="w-full h-full absolute inset-0 transform-style-preserve-3d">
+      <div 
+        ref={containerRef} 
+        className="w-full h-full absolute inset-0 transform-style-preserve-3d"
+        style={{
+          // Custom CSS variables for DOM reaction
+          "--core-x": "50%",
+          "--core-y": "50%",
+          "--core-pressure": "0",
+          "--tear-size": "0%",
+          // Mask the desktop to reveal the WebGL Canvas underneath during tear
+          maskImage: state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY" 
+            ? "radial-gradient(circle at center, transparent var(--tear-size), black calc(var(--tear-size) + 5%))"
+            : undefined,
+          WebkitMaskImage: state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY"
+            ? "radial-gradient(circle at center, transparent var(--tear-size), black calc(var(--tear-size) + 5%))"
+            : undefined,
+        } as React.CSSProperties}
+      >
         
-        {/* Background Grid */}
+        {/* Background Grid with Pressure Distortion */}
         <div 
           className="absolute inset-0"
           style={{
             backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
-            backgroundSize: '20px 20px',
+            backgroundSize: 'calc(20px + (var(--core-pressure) * 10px)) calc(20px + (var(--core-pressure) * 10px))',
+            backgroundPosition: 'center center',
+            transition: 'background-size 0.1s linear',
           }} 
         />
 
         {/* System Bar */}
         <div className={cn(
           "absolute top-0 w-full h-8 flex items-center px-4 justify-between z-50 font-mono text-xs transition-colors duration-500 border-b border-[#333]",
-          state.phase === "FUTURE_TEASER" ? "bg-transparent text-muted border-transparent" : "bg-border/50 text-white"
+          state.phase !== "DESKTOP" ? "bg-transparent text-muted border-transparent" : "bg-border/50 text-white"
         )}>
           <span>REALITY OS // 1991</span>
           <span>{time}</span>
@@ -270,24 +344,6 @@ export function RetroDesktop() {
 
       <FutureDialog />
 
-      {/* FUTURE_TEASER OVERLAY TEXT */}
-      {state.phase === "FUTURE_TEASER" && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-none text-center p-4">
-          <p className="text-terminal font-mono mb-2 animate-fade-in">&gt; EXECUTING future.exe...</p>
-          <p className="text-danger font-mono mb-8 animate-fade-in" style={{ animationDelay: "1s" }}>DIMENSIONAL LAYER DETECTED</p>
-          
-          <p className="display-lg text-white mb-8 animate-fade-in" style={{ animationDelay: "3s" }}>
-            THE INTERFACE IS<br/>NO LONGER FLAT.
-          </p>
-          
-          <div className="animate-fade-in" style={{ animationDelay: "5s" }}>
-            <p className="system-text mb-2">PHASE 03 READY</p>
-            <button className="border border-terminal text-terminal px-4 py-2 uppercase tracking-widest text-xs pointer-events-auto hover:bg-terminal hover:text-black transition-colors" data-cursor="CLICK">
-              [ CONTINUE ]
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

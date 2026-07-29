@@ -2,11 +2,20 @@
 
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
-import { Scene } from "./Scene";
+import { DimensionalScene } from "./dimensional/DimensionalScene";
+import { useExperience } from "@/components/providers/ExperienceProvider";
+import { cn } from "@/lib/utils";
 
 export function WebGLCanvas() {
+  const { state } = useExperience();
+  
+  const isInteractive = state.phase === "CORE_INTERACTIVE" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY";
+
   return (
-    <div className="fixed inset-0 pointer-events-none z-10 w-full h-full">
+    <div className={cn(
+      "fixed inset-0 w-full h-full pointer-events-none",
+      state.phase === "CORE_INTERACTIVE" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY" ? "z-[60]" : "z-0"
+    )}>
       <Canvas
         dpr={[1, 2]}
         gl={{ 
@@ -15,10 +24,10 @@ export function WebGLCanvas() {
           powerPreference: "high-performance",
           preserveDrawingBuffer: false 
         }}
-        camera={{ position: [0, 0, 5], fov: 45 }}
+        style={{ pointerEvents: isInteractive ? "auto" : "none" }}
       >
         <Suspense fallback={null}>
-          <Scene />
+          <DimensionalScene />
         </Suspense>
       </Canvas>
     </div>

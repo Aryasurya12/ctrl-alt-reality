@@ -1,4 +1,12 @@
-export type ExperiencePhase = "BOOT" | "TERMINAL" | "DESKTOP" | "FUTURE_TEASER" | "EXPLORE" | "LAB" | "CHAOS" | "FINALE";
+export type ExperiencePhase = 
+  | "BOOT" 
+  | "TERMINAL" 
+  | "DESKTOP" 
+  | "FUTURE_TEASER" 
+  | "DIMENSIONAL_BREAK" 
+  | "CORE_INTERACTIVE"
+  | "CORE_BREAKING" 
+  | "GRAVITY_FAILURE";
 
 export interface ExperienceState {
   phase: ExperiencePhase;
@@ -9,12 +17,17 @@ export interface ExperienceState {
   prefersReducedMotion: boolean;
   hasTouch: boolean;
   
-  // Desktop OS State
+  // Desktop State
   openWindows: string[];
   activeWindow: string;
   selectedIcon: string | null;
   openedAppCount: number;
   hasSeenDemo: boolean;
+
+  // Phase 3 Interaction State
+  hasDraggedCore: boolean;
+  hasHeldCore: boolean;
+  hasReleasedCore: boolean;
 }
 
 export type ExperienceAction = {

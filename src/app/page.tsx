@@ -5,6 +5,8 @@ import { useExperience } from "@/components/providers/ExperienceProvider";
 import { SystemBoot } from "@/components/scenes/SystemBoot/SystemBoot";
 import { Terminal } from "@/components/scenes/Terminal/Terminal";
 import { RetroDesktop } from "@/components/scenes/RetroDesktop/RetroDesktop";
+import { DimensionalBreak } from "@/components/scenes/DimensionalBreak/DimensionalBreak";
+
 
 // Dynamically import WebGL to prevent SSR issues
 const WebGLCanvas = dynamic(
@@ -19,7 +21,7 @@ export default function Home() {
     <main className="relative flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden bg-black selection:bg-terminal selection:text-black">
       
       {/* 3D Dimensional Teaser (Hidden until FUTURE_TEASER) */}
-      {(state.phase === "FUTURE_TEASER" || process.env.NODE_ENV === "development") && (
+      {(state.phase === "FUTURE_TEASER" || state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE" || process.env.NODE_ENV === "development") && (
         <WebGLCanvas />
       )}
 
@@ -27,7 +29,12 @@ export default function Home() {
       <div className="absolute inset-0 z-10 w-full h-full">
         {state.phase === "BOOT" && <SystemBoot />}
         {state.phase === "TERMINAL" && <Terminal />}
-        {(state.phase === "DESKTOP" || state.phase === "FUTURE_TEASER") && <RetroDesktop />}
+        {(state.phase === "DESKTOP" || state.phase === "FUTURE_TEASER" || state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE") && (
+          <RetroDesktop />
+        )}
+        {(state.phase === "FUTURE_TEASER" || state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE") && (
+          <DimensionalBreak />
+        )}
       </div>
 
       {/* Development controls */}
@@ -39,6 +46,7 @@ export default function Home() {
           <button onClick={() => dispatch({type: "SET_PHASE", payload: "FUTURE_TEASER"})} className="border px-1 border-[#444] hover:bg-[#444]">FUTR</button>
         </div>
       )}
+
     </main>
   );
 }

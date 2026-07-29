@@ -15,7 +15,8 @@ type Action =
   | { type: "CLOSE_WINDOW"; payload: string }
   | { type: "FOCUS_WINDOW"; payload: string }
   | { type: "SELECT_ICON"; payload: string | null }
-  | { type: "SET_HAS_SEEN_DEMO"; payload: boolean };
+  | { type: "SET_HAS_SEEN_DEMO"; payload: boolean }
+  | { type: "SET_CORE_INTERACTION"; payload: "drag" | "hold" | "release" };
 
 const initialState: ExperienceState = {
   phase: "BOOT",
@@ -30,6 +31,9 @@ const initialState: ExperienceState = {
   selectedIcon: null,
   openedAppCount: 0,
   hasSeenDemo: false,
+  hasDraggedCore: false,
+  hasHeldCore: false,
+  hasReleasedCore: false,
 };
 
 function experienceReducer(state: ExperienceState, action: Action): ExperienceState {
@@ -79,6 +83,11 @@ function experienceReducer(state: ExperienceState, action: Action): ExperienceSt
       return { ...state, selectedIcon: action.payload, activeWindow: "" };
     case "SET_HAS_SEEN_DEMO":
       return { ...state, hasSeenDemo: action.payload };
+    case "SET_CORE_INTERACTION":
+      if (action.payload === "drag") return { ...state, hasDraggedCore: true };
+      if (action.payload === "hold") return { ...state, hasHeldCore: true };
+      if (action.payload === "release") return { ...state, hasReleasedCore: true };
+      return state;
     default:
       return state;
   }
