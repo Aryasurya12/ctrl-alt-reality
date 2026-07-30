@@ -11,7 +11,14 @@ export function DimensionalBreak() {
   const textRef2 = useRef<HTMLParagraphElement>(null);
   const textRef3 = useRef<HTMLParagraphElement>(null);
   const typographyRef = useRef<HTMLDivElement>(null);
+  const typographyInnerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const statusTextRef = useRef<HTMLDivElement>(null);
+  const cursorTextRef = useRef<HTMLDivElement>(null);
+  const implosionFlashRef = useRef<HTMLDivElement>(null);
   
+  const [diagnostics, setDiagnostics] = useState("");
+
   // Impact texts refs
   const impactRef1 = useRef<HTMLParagraphElement>(null);
   const impactRef2 = useRef<HTMLParagraphElement>(null);
@@ -20,20 +27,8 @@ export function DimensionalBreak() {
   // Tutorial refs
   const touchTextRef = useRef<HTMLParagraphElement>(null);
   const feedbackTextRef = useRef<HTMLParagraphElement>(null);
-  const shockwaveRef = useRef<HTMLDivElement>(null);
 
   const reducedMotion = useReducedMotion();
-
-  // Listen for portal hover event from WebGL
-  useEffect(() => {
-    const handlePortalHover = (e: Event) => {
-      const customEvent = e as CustomEvent<boolean>;
-      setIsPortalHovered(customEvent.detail);
-    };
-    
-    window.addEventListener('portal-hover', handlePortalHover);
-    return () => window.removeEventListener('portal-hover', handlePortalHover);
-  }, []);
 
   // Handle the initial teaser text sequence
   useEffect(() => {
@@ -118,7 +113,7 @@ export function DimensionalBreak() {
 
   const prevDragged = useRef(state.hasDraggedCore);
   const prevHeld = useRef(state.hasHeldCore);
-  const prevClicked = useRef(state.hasClickedCore);
+  const prevReleased = useRef(state.hasReleasedCore);
 
   useEffect(() => {
     if (state.phase !== "CORE_INTERACTIVE") return;
@@ -131,39 +126,102 @@ export function DimensionalBreak() {
       showFeedback("MATERIAL RESPONSE DETECTED");
       prevHeld.current = true;
     }
-    if (state.hasClickedCore && !prevClicked.current) {
+    if (state.hasReleasedCore && !prevReleased.current) {
       showFeedback("SIGNAL RECEIVED");
-      prevClicked.current = true;
+      prevReleased.current = true;
     }
-  }, [state.hasDraggedCore, state.hasHeldCore, state.hasClickedCore, state.phase]);
+  }, [state.hasDraggedCore, state.hasHeldCore, state.hasReleasedCore, state.phase]);
 
 
-  // Shockwave Sequence
+  // Reality Break Master Sequence
   useEffect(() => {
     if (state.phase === "CORE_BREAKING") {
       const tl = gsap.timeline();
-      
-      // Jitter typography around 0.45s
-      tl.to(typographyRef.current, {
-        x: () => (Math.random() - 0.5) * 20,
-        y: () => (Math.random() - 0.5) * 20,
-        skewX: () => (Math.random() - 0.5) * 5,
-        duration: 0.1,
-        repeat: 3,
-        yoyo: true,
-      }, 0.45);
-      
-      // Fade out typography
-      tl.to(typographyRef.current, { opacity: 0, duration: 0.3 }, 0.85);
 
-      // DOM shockwave ring
-      if (shockwaveRef.current) {
-        tl.fromTo(shockwaveRef.current, 
-          { scale: 0, opacity: 1, borderWidth: "10px" },
-          { scale: 5, opacity: 0, borderWidth: "1px", duration: 0.6, ease: "power2.out" },
-          0.32
-        );
-      }
+      // Ensure elements are ready
+      gsap.set(typographyRef.current, { perspective: 1000 });
+      gsap.set(typographyInnerRef.current, { transformStyle: "preserve-3d" });
+      
+      const words = document.querySelectorAll('.physics-word');
+      const instructions = document.querySelectorAll('.physics-instruction');
+
+      // STAGE 1 & 2: Center Status
+      tl.to(statusTextRef.current, { opacity: 1, duration: 0.1 }, 0.0);
+      tl.add(() => { if (statusTextRef.current) statusTextRef.current.innerText = "STABILITY: 03%"; }, 0.0);
+      tl.add(() => { if (statusTextRef.current) statusTextRef.current.innerText = "STABILITY: 01%"; }, 0.2);
+      tl.add(() => { if (statusTextRef.current) statusTextRef.current.innerText = "STABILITY: 00%"; }, 0.4);
+      tl.add(() => { if (statusTextRef.current) statusTextRef.current.innerText = "CORE FAILURE"; }, 0.5);
+      tl.to(statusTextRef.current, { opacity: 0, duration: 0.1 }, 0.65);
+
+      // STAGE 3: Reality Bending (Text drifts towards center)
+      tl.to(words, { x: 50, duration: 0.5, ease: "power1.in", stagger: 0.02 }, 0.55);
+      tl.to(instructions, { x: -50, duration: 0.5, ease: "power1.in", stagger: 0.02 }, 0.55);
+
+      // STAGE 4: Grid Distortion
+      tl.to(gridRef.current, { opacity: 1, duration: 0.2 }, 0.75);
+      tl.to(gridRef.current, { scale: 0.8, duration: 0.45, ease: "power2.in" }, 0.75);
+
+      // STAGE 5: Pointer Control Lost
+      tl.to(cursorTextRef.current, { opacity: 1, duration: 0.1 }, 0.90);
+      tl.to(cursorTextRef.current, { opacity: 0, duration: 0.1 }, 1.25);
+
+      // STAGE 7: Gravity Reversal (Snap Outward)
+      tl.to(words, { x: -30, duration: 0.05, ease: "power4.out" }, 1.20);
+      tl.to(instructions, { x: 30, duration: 0.05, ease: "power4.out" }, 1.20);
+
+      // STAGE 9: Typography Physics (zero gravity drift)
+      words.forEach((word) => {
+        tl.to(word, {
+          x: () => (Math.random() - 0.5) * 400 - 50,
+          y: () => (Math.random() - 0.5) * 400,
+          rotation: () => (Math.random() - 0.5) * 90,
+          duration: 0.6,
+          ease: "power2.out"
+        }, 1.55);
+      });
+      instructions.forEach((inst) => {
+        tl.to(inst, {
+          x: () => (Math.random() - 0.5) * 400 + 50,
+          y: () => (Math.random() - 0.5) * 400,
+          rotation: () => (Math.random() - 0.5) * 90,
+          duration: 0.6,
+          ease: "power2.out"
+        }, 1.55);
+      });
+      tl.to(gridRef.current, { scale: 1.5, opacity: 0.5, duration: 0.6, ease: "power2.out" }, 1.55);
+
+      // STAGE 10: Screen Depth Failure
+      tl.to(typographyInnerRef.current, {
+        rotateY: 25,
+        rotateX: -10,
+        z: -100,
+        duration: 0.45,
+        ease: "power1.inOut"
+      }, 1.80);
+
+      // STAGE 11: Final Suction
+      words.forEach((word) => {
+        tl.to(word, { x: 500, y: 0, scale: 0, duration: 0.35, ease: "expo.in" }, 2.10);
+      });
+      instructions.forEach((inst) => {
+        tl.to(inst, { x: -500, y: 0, scale: 0, duration: 0.35, ease: "expo.in" }, 2.10);
+      });
+      tl.to(gridRef.current, { scale: 0, opacity: 0, duration: 0.35, ease: "expo.in" }, 2.10);
+      tl.to(typographyInnerRef.current, { rotateY: 90, scale: 0, duration: 0.35, ease: "expo.in" }, 2.10);
+
+      // STAGE 12: Implosion White Flash
+      tl.fromTo(implosionFlashRef.current, 
+        { opacity: 1, scale: 0 }, 
+        { scale: 50, duration: 0.1, ease: "power4.out" }, 2.45
+      ).to(implosionFlashRef.current, { opacity: 0, duration: 0.05 }, 2.55);
+
+      // STAGE 13: Diagnostics Typing
+      tl.add(() => setDiagnostics(""), 2.65);
+      tl.add(() => setDiagnostics("REALITY.OS"), 2.70);
+      tl.add(() => setDiagnostics("REALITY.OS\nPHYSICS ENGINE ........ OFFLINE"), 2.80);
+      tl.add(() => setDiagnostics("REALITY.OS\nPHYSICS ENGINE ........ OFFLINE\nSPATIAL MATRIX ........ FAILED"), 2.90);
+      tl.add(() => setDiagnostics("REALITY.OS\nPHYSICS ENGINE ........ OFFLINE\nSPATIAL MATRIX ........ FAILED\nGRAVITY ............... NULL"), 3.00);
+      tl.add(() => setDiagnostics(""), 3.25);
     }
   }, [state.phase]);
 
@@ -193,37 +251,73 @@ export function DimensionalBreak() {
         OBJECT EXISTS OUTSIDE DOCUMENT FLOW
       </p>
 
+      {/* Background Grid for Distortion */}
+      <div 
+        ref={gridRef}
+        className="absolute inset-0 pointer-events-none opacity-0 mix-blend-difference"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+          backgroundPosition: 'center center'
+        }}
+      />
+
+      {/* Center status text */}
+      <div ref={statusTextRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-terminal font-mono text-[10px] opacity-0 pointer-events-none z-[110] tracking-widest whitespace-nowrap">
+        STABILITY: 03%
+      </div>
+
+      {/* Custom Cursor offset text */}
+      <div ref={cursorTextRef} className="absolute top-1/2 left-[55%] text-danger font-mono text-[10px] opacity-0 pointer-events-none z-[110] tracking-widest">
+        POINTER CONTROL LOST
+      </div>
+
       {/* Phase 3 Typography */}
       <div 
         ref={typographyRef}
         className="absolute inset-0 flex pointer-events-none opacity-0 mix-blend-difference"
       >
-        <div className="w-full h-full p-8 md:p-16 flex flex-col justify-center">
-           <h2 className="t1 text-white/50 font-serif text-lg md:text-2xl tracking-widest uppercase w-full">The web was built flat.</h2>
-           <h2 className="t2 text-white/80 font-serif text-xl md:text-3xl tracking-widest uppercase w-full mt-2">We gave it motion.</h2>
-           <h1 className="t3 text-white font-serif tracking-tighter uppercase mt-6" style={{ fontSize: "clamp(3rem, 6vw, 6rem)", lineHeight: 0.9 }}>Now<br/>Give It<br/>Depth.</h1>
+        <div ref={typographyInnerRef} className="w-full h-full p-8 md:p-16 flex flex-col justify-center origin-center">
+           <h2 className="t1 text-white/50 font-serif text-lg md:text-2xl tracking-widest uppercase w-full">
+             <span className="physics-word inline-block mr-[0.3em]">The</span>
+             <span className="physics-word inline-block mr-[0.3em]">web</span>
+             <span className="physics-word inline-block mr-[0.3em]">was</span>
+             <span className="physics-word inline-block mr-[0.3em]">built</span>
+             <span className="physics-word inline-block">flat.</span>
+           </h2>
+           <h2 className="t2 text-white/80 font-serif text-xl md:text-3xl tracking-widest uppercase w-full mt-2">
+             <span className="physics-word inline-block mr-[0.3em]">We</span>
+             <span className="physics-word inline-block mr-[0.3em]">gave</span>
+             <span className="physics-word inline-block mr-[0.3em]">it</span>
+             <span className="physics-word inline-block">motion.</span>
+           </h2>
+           <h1 className="t3 text-white font-serif tracking-tighter uppercase mt-6" style={{ fontSize: "clamp(3rem, 6vw, 6rem)", lineHeight: 0.9 }}>
+             <div className="physics-word inline-block">Now</div><br/>
+             <div className="physics-word inline-block">Give It</div><br/>
+             <div className="physics-word inline-block">Depth.</div>
+           </h1>
         </div>
       </div>
 
       {/* Interaction Guides (Right side) */}
       {(state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING") && (
         <div className="absolute right-8 md:right-24 top-1/2 -translate-y-1/2 flex flex-col gap-12 pointer-events-none mix-blend-difference">
-          <div className={cn("transition-opacity duration-1000", state.hasDraggedCore ? "opacity-50" : "opacity-100")}>
-            <p className="text-white font-mono text-sm tracking-widest uppercase flex items-center gap-2">
+          <div className={cn("physics-instruction transition-opacity duration-1000", state.hasDraggedCore ? "opacity-50" : "opacity-100")}>
+            <p className="text-white font-mono text-sm tracking-widest uppercase flex items-center gap-2 whitespace-nowrap">
               DRAG {state.hasDraggedCore && <span className="text-terminal">✓</span>}
             </p>
             <p className="text-white/50 font-serif italic mt-1 text-sm">to rotate</p>
           </div>
           
-          <div className={cn("transition-opacity duration-1000", !state.hasDraggedCore ? "opacity-30" : state.hasHeldCore ? "opacity-50" : "opacity-100")}>
-            <p className="text-white font-mono text-sm tracking-widest uppercase flex items-center gap-2">
+          <div className={cn("physics-instruction transition-opacity duration-1000", !state.hasDraggedCore ? "opacity-30" : state.hasHeldCore ? "opacity-50" : "opacity-100")}>
+            <p className="text-white font-mono text-sm tracking-widest uppercase flex items-center gap-2 whitespace-nowrap">
               HOLD {state.hasHeldCore && <span className="text-terminal">✓</span>}
             </p>
             <p className="text-white/50 font-serif italic mt-1 text-sm">to compress</p>
           </div>
           
-          <div className={cn("transition-opacity duration-1000", !state.hasHeldCore ? "opacity-30" : "opacity-100 animate-pulse")}>
-            <p className="text-white font-mono text-sm tracking-widest uppercase flex items-center gap-2">
+          <div className={cn("physics-instruction transition-opacity duration-1000", !state.hasHeldCore ? "opacity-30" : "opacity-100 animate-pulse")}>
+            <p className="text-white font-mono text-sm tracking-widest uppercase flex items-center gap-2 whitespace-nowrap">
               RELEASE {state.hasReleasedCore && <span className="text-terminal">✓</span>}
             </p>
             <p className="text-white/50 font-serif italic mt-1 text-sm">to break</p>
@@ -231,21 +325,29 @@ export function DimensionalBreak() {
         </div>
       )}
 
-      {/* Shockwave Ring */}
+      {/* Implosion White Flash */}
       <div 
-        ref={shockwaveRef} 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full border-white mix-blend-difference opacity-0 pointer-events-none"
+        ref={implosionFlashRef} 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white opacity-0 pointer-events-none z-[150]"
       />
 
-      {/* GRAVITY FAILURE placeholder */}
-      {state.phase === "GRAVITY_FAILURE" && (
-        <div className="absolute inset-0 bg-black flex flex-col items-center justify-center pointer-events-none z-[200]">
-          <h1 className="text-white font-serif tracking-widest text-4xl md:text-6xl text-center leading-tight">
-            GRAVITY<br/>FAILED.
-          </h1>
-          <p className="text-terminal font-mono text-xs mt-8 tracking-widest">
-            REALITY.OS // ERROR 05
-          </p>
+      {/* GRAVITY FAILURE placeholder & Diagnostics */}
+      {(state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE") && (
+        <div className={cn("absolute inset-0 bg-black flex flex-col items-center justify-center pointer-events-none z-[200]", state.phase === "GRAVITY_FAILURE" ? "opacity-100" : "opacity-0")} style={{ opacity: diagnostics ? 1 : undefined }}>
+          {diagnostics ? (
+            <div className="absolute top-8 left-8 text-terminal font-mono text-xs whitespace-pre-wrap leading-relaxed opacity-75">
+              {diagnostics}
+            </div>
+          ) : state.phase === "GRAVITY_FAILURE" ? (
+            <>
+              <h1 className="text-white font-serif tracking-widest text-4xl md:text-6xl text-center leading-tight">
+                GRAVITY<br/>FAILED.
+              </h1>
+              <p className="text-terminal font-mono text-xs mt-8 tracking-widest">
+                REALITY.OS // ERROR 05
+              </p>
+            </>
+          ) : null}
         </div>
       )}
 

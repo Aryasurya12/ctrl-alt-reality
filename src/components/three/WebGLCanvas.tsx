@@ -9,12 +9,12 @@ import { cn } from "@/lib/utils";
 export function WebGLCanvas() {
   const { state } = useExperience();
   
-  const isInteractive = state.phase === "CORE_INTERACTIVE" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY";
+  const isInteractive = state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING";
 
   return (
     <div className={cn(
       "fixed inset-0 w-full h-full pointer-events-none",
-      state.phase === "CORE_INTERACTIVE" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY" ? "z-[60]" : "z-0"
+      state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" ? "z-[60]" : "z-0"
     )}>
       <Canvas
         dpr={[1, 2]}

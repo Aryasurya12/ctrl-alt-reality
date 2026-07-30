@@ -94,7 +94,7 @@ export function RetroDesktop() {
     } else if (state.phase === "CORE_INTERACTIVE") {
       // Keep state from DIMENSIONAL_BREAK if HMR happens
       gsap.set(containerRef.current, { rotateX: 15, rotateY: -5, z: -400, opacity: 0.1, "--tear-size": "100%" });
-    } else if (state.phase === "CORE_AWAKENING" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY") {
+    } else if (state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE") {
       if (containerRef.current) {
         // Drop desktop opacity further and drift backward
         gsap.to(containerRef.current, {
@@ -192,10 +192,10 @@ export function RetroDesktop() {
           "--core-pressure": "0",
           "--tear-size": "0%",
           // Mask the desktop to reveal the WebGL Canvas underneath during tear
-          maskImage: state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY" 
+          maskImage: state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE" 
             ? "radial-gradient(circle at center, transparent var(--tear-size), black calc(var(--tear-size) + 5%))"
             : undefined,
-          WebkitMaskImage: state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY"
+          WebkitMaskImage: state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE"
             ? "radial-gradient(circle at center, transparent var(--tear-size), black calc(var(--tear-size) + 5%))"
             : undefined,
         } as React.CSSProperties}

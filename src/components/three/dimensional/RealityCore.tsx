@@ -30,7 +30,9 @@ export function RealityCore() {
     uTime: { value: 0 },
     uPulse: { value: 0 },
     uCompress: { value: 0 },
-  }).current;
+    uOverload: { value: 0 },
+    uFracture: { value: 0 },
+  });
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('core-debug-update', {
@@ -68,14 +70,19 @@ export function RealityCore() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onBeforeCompile = useCallback((shader: any) => {
-    shader.uniforms.uTime = uniforms.uTime;
-    shader.uniforms.uPulse = uniforms.uPulse;
-    shader.uniforms.uCompress = uniforms.uCompress;
+    shader.uniforms.uTime = uniforms.current.uTime;
+    shader.uniforms.uPulse = uniforms.current.uPulse;
+    shader.uniforms.uCompress = uniforms.current.uCompress;
+    shader.uniforms.uOverload = uniforms.current.uOverload;
+    shader.uniforms.uFracture = uniforms.current.uFracture;
 
     shader.vertexShader = `
       uniform float uTime;
       uniform float uPulse;
       uniform float uCompress;
+      uniform float uOverload;
+      uniform float uFracture;
+
       
       // Simplex noise function
       vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -137,12 +144,15 @@ export function RealityCore() {
       
       // Breathing base noise
       float noise = snoise(vec3(position.x * 1.5 + uTime * 0.1, position.y * 1.5, position.z * 1.5));
-      float deformation = noise * 0.03; // Subtle, organic liquid metal
+      float deformation = noise * 0.03 * (1.0 - uOverload); 
       
-      // Pulse interaction (fast outward ripple)
-      // Uses a sine wave that quickly decays
-      float pulseWave = sin(position.y * 10.0 + uTime * 15.0) * exp(-uTime * 5.0) * uPulse;
-      deformation += pulseWave * 0.1;
+      // Overload deformation (fast vibration, pulled inwards)
+      float overloadNoise = snoise(vec3(position.x * 10.0 + uTime * 10.0, position.y * 10.0, position.z * 10.0));
+      deformation += overloadNoise * 0.05 * uOverload;
+      
+      // Fracture pulse
+      float fracturePulse = (sin(position.y * 20.0 - uTime * 50.0) * 0.5 + 0.5) * uFracture;
+      deformation += fracturePulse * 0.2;
       
       // Apply base deformation along normal
       vec3 finalPos = position + normal * deformation;
@@ -158,6 +168,9 @@ export function RealityCore() {
 
     shader.fragmentShader = `
       uniform float uCompress;
+      uniform float uOverload;
+      uniform float uFracture;
+      uniform float uTime;
       ${shader.fragmentShader}
     `.replace(
       '#include <color_fragment>',
@@ -166,12 +179,19 @@ export function RealityCore() {
       
       // Increase highlight intensity slightly during hold/compress
       diffuseColor.rgb += vec3(0.05, 0.1, 0.08) * uCompress;
+      
+      // Overload tightening
+      diffuseColor.rgb *= (1.0 - uOverload * 0.3);
+      
+      // Fracture bright seam
+      float seam = step(0.98, sin(vNormal.y * 20.0 + uTime * 10.0));
+      diffuseColor.rgb += vec3(1.0, 1.0, 1.0) * seam * uFracture * 2.0;
       `
     );
   }, [uniforms]);
 
   useFrame((_, delta) => {
-    uniforms.uTime.value += delta * (reducedMotion ? 0.2 : 0.5);
+    uniforms.current.uTime.value += delta * (reducedMotion ? 0.2 : 0.5);
 
     if (meshRef.current) {
       if (interactionState === "dragging") {
@@ -218,7 +238,7 @@ export function RealityCore() {
       ? holdProgress.current 
       : Math.sin(holdProgress.current * Math.PI) * holdProgress.current * -0.2 + holdProgress.current;
       
-    uniforms.uCompress.value += (compressTarget - uniforms.uCompress.value) * 0.2;
+    uniforms.current.uCompress.value += (compressTarget - uniforms.current.uCompress.value) * 0.2;
   });
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
@@ -239,12 +259,13 @@ export function RealityCore() {
     
     totalMovement.current += Math.abs(dx) + Math.abs(dy);
     
-    if (totalMovement.current > 10 && interactionState !== "dragging") {
+    // Only transition to dragging if we haven't already transitioned to holding
+    if (totalMovement.current > 10 && interactionState === "pointerDown") {
       setInteractionState("dragging");
       dispatch({ type: "SET_CORE_INTERACTION", payload: "drag" });
     }
     
-    if (interactionState === "dragging") {
+    if (interactionState === "dragging" || interactionState === "holding") {
       const deltaX = dx * 0.005;
       const deltaY = dy * 0.005;
       
@@ -262,23 +283,29 @@ export function RealityCore() {
   const handlePointerUp = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
 
-    const timeDown = performance.now() - pointerDownTime.current;
-    
-    if (interactionState === "holding") {
+    // Trigger release if they were holding, or if they dragged while it was significantly compressed
+    if (interactionState === "holding" || (state.hasHeldCore && holdProgress.current > 0.3)) {
       dispatch({ type: "SET_CORE_INTERACTION", payload: "release" });
-      
-      if (!reducedMotion) {
-        // Trigger the internal pulse for the break
-        uniforms.uTime.value = 0;
-        gsap.fromTo(uniforms.uPulse, 
-          { value: 1 }, 
-          { value: 0, duration: 0.5, ease: "power2.out" }
-        );
-      }
     }
     
     setInteractionState("idle");
   };
+
+  // CORE_BREAKING Timeline
+  useEffect(() => {
+    if (state.phase === "CORE_BREAKING") {
+      const tl = gsap.timeline();
+      
+      // STAGE 2: 0.3s - 0.8s (Overload)
+      tl.to(uniforms.current.uOverload, { value: 1, duration: 0.5, ease: "power2.inOut" }, 0.3);
+      
+      // STAGE 6: 1.15s (Fracture)
+      tl.to(uniforms.current.uFracture, { value: 1, duration: 0.1, ease: "power4.out" }, 1.15); // Sharp pulse
+      
+      // 1.45s: Core disappears
+      tl.to(meshRef.current!.scale, { x: 0, y: 0, z: 0, duration: 0.05 }, 1.45);
+    }
+  }, [state.phase, uniforms]);
 
   return (
     <mesh

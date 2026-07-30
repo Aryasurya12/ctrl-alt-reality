@@ -12,7 +12,7 @@ export function Portal() {
   const materialRef = useRef<THREE.MeshPhysicalMaterial>(null);
   const tunnelGroupRef = useRef<THREE.Group>(null);
   
-  const { mouse, viewport } = useThree();
+  const { mouse } = useThree();
   const reducedMotion = useReducedMotion();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -24,7 +24,7 @@ export function Portal() {
 
   // Custom Cursor (We rely on global DOM for ENTER)
   useEffect(() => {
-    if (state.phase !== "PORTAL_READY") return;
+    if (state.phase !== "GRAVITY_FAILURE") return;
     document.body.style.cursor = isHovered ? 'pointer' : 'auto';
     
     // Dispatch a custom event so the DOM overlay can react to hover
@@ -150,7 +150,7 @@ export function Portal() {
     }
 
     // Parallax tracking
-    if (state.phase === "PORTAL_READY") {
+    if (state.phase === "GRAVITY_FAILURE") {
       parallaxCurrent.current.x += (mouse.x - parallaxCurrent.current.x) * 0.1;
       parallaxCurrent.current.y += (mouse.y - parallaxCurrent.current.y) * 0.1;
 
@@ -180,12 +180,12 @@ export function Portal() {
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
-    if (state.phase !== "PORTAL_READY") return;
+    if (state.phase !== "GRAVITY_FAILURE") return;
     
     setIsHovered(false);
     document.body.style.cursor = 'auto';
     window.dispatchEvent(new CustomEvent('portal-hover', { detail: false }));
-    dispatch({ type: "SET_PHASE", payload: "PHASE_04_READY" });
+    dispatch({ type: "SET_PHASE", payload: "GRAVITY_FAILURE" });
   };
 
   const numRings = 7;
@@ -223,7 +223,7 @@ export function Portal() {
     <group 
       ref={groupRef}
       scale={1} 
-      visible={state.phase === "PORTAL_READY" || state.phase === "PHASE_04_READY"}
+      visible={state.phase === "GRAVITY_FAILURE"}
       onClick={handleClick}
       onPointerEnter={() => setIsHovered(true)}
       onPointerLeave={() => setIsHovered(false)}

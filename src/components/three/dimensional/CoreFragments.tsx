@@ -53,28 +53,50 @@ export function CoreFragments() {
   }, [state.phase, particles, dummy]);
 
   const timeRef = useRef(0);
+  const phaseRef = useRef<"burst" | "suction" | "implosion">("burst");
 
   useFrame((_, delta) => {
     if (state.phase !== "CORE_BREAKING" || !meshRef.current) return;
     
     timeRef.current += delta;
     
-    // Delay fragment explosion until 0.32s to match core disappearance
-    if (timeRef.current < 0.32) return;
+    // Delay fragment explosion until 1.45s to match core disappearance
+    if (timeRef.current < 1.45) return;
+
+    if (timeRef.current >= 2.10 && phaseRef.current === "burst") {
+      phaseRef.current = "suction";
+      // Reverse velocities towards center (0,0,2)
+      particles.forEach(p => {
+        const dirToCenter = new THREE.Vector3(0, 0, 2).sub(p.position).normalize();
+        p.velocity.copy(dirToCenter).multiplyScalar(15);
+      });
+    }
+
+    if (timeRef.current >= 2.45) {
+      meshRef.current.visible = false;
+      return;
+    }
 
     particles.forEach((p, i) => {
       p.position.addScaledVector(p.velocity, delta);
       p.rotation.addScaledVector(p.rotVelocity, delta);
       
-      // Drag/Friction
-      p.velocity.multiplyScalar(0.95);
+      // Drag/Friction during burst, acceleration during suction
+      if (phaseRef.current === "burst") {
+        p.velocity.multiplyScalar(0.95);
+      } else if (phaseRef.current === "suction") {
+        p.velocity.multiplyScalar(1.2); // exponential speedup
+      }
       
       dummy.position.copy(p.position);
       dummy.rotation.set(p.rotation.x, p.rotation.y, p.rotation.z);
       
-      // Scale down over time
-      const lifeTime = timeRef.current - 0.32;
-      const currentScale = Math.max(0, p.scale * (1.0 - lifeTime * 1.5));
+      // Scale down over time during suction
+      let currentScale = p.scale;
+      if (phaseRef.current === "suction") {
+        currentScale = Math.max(0, p.scale * (1.0 - (timeRef.current - 2.10) * 2.5));
+      }
+      
       dummy.scale.set(currentScale, currentScale, currentScale);
       
       dummy.updateMatrix();

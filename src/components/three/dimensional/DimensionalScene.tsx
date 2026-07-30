@@ -121,51 +121,20 @@ export function DimensionalScene() {
         }
       });
 
-      // 0.00s: Micro pause
-      tl.to({}, { duration: 0.08 });
+      // 0.8s - 1.3s: Camera pushes closer during Overload
+      tl.to(cameraRef.current!.position, { z: 6, duration: 0.5, ease: "power2.inOut" }, 0.8);
 
-      // 0.08s: Pull inward further
-      tl.to(coreGroup.current!.scale, {
-        x: targetScale * 0.85,
-        y: targetScale * 0.85,
-        z: targetScale * 0.85,
-        duration: 0.08,
-        ease: "power2.in"
-      });
+      // 1.45s: Rupture recoil
+      tl.to(cameraRef.current!.position, { z: 6.2, duration: 0.1, ease: "power3.out" }, 1.45);
+      tl.to(cameraRef.current!.position, { z: 6.0, duration: 0.4, ease: "power2.out" }, 1.55);
 
-      // 0.16s: Violent stretch/pulse (shader will handle internal pulse, we handle scale)
-      tl.to(coreGroup.current!.scale, {
-        x: targetScale * 1.5,
-        y: targetScale * 1.5,
-        z: targetScale * 1.5,
-        duration: 0.16,
-        ease: "expo.out"
-      });
+      // 1.8s - 2.3s: Pull toward implosion
+      tl.to(cameraRef.current!.position, { z: 5.8, duration: 0.5, ease: "power2.in" }, 1.8);
 
-      // 0.32s: Disappear (fragments take over in DOM or separate mesh)
-      tl.to(coreGroup.current!.scale, {
-        x: 0,
-        y: 0,
-        z: 0,
-        duration: 0.1,
-        ease: "power3.in"
-      }, 0.32);
-      
-      // Camera Reaction (0.38s)
-      tl.to(cameraRef.current!.position, {
-        z: 7.5,
-        duration: 0.1,
-        ease: "power2.out"
-      }, 0.38).to(cameraRef.current!.position, {
-        z: 8.0,
-        duration: 0.6,
-        ease: "elastic.out(1, 0.3)"
-      }, 0.48);
-
-      // Total timeline runs slightly longer to reach 1.3s total
-      tl.to({}, { duration: 0.5 });
+      // End of sequence duration 3.3s
+      tl.to({}, { duration: 3.3 });
     }
-  }, [state.phase, dispatch, targetScale]);
+  }, [state.phase, dispatch]);
 
   return (
     <>
