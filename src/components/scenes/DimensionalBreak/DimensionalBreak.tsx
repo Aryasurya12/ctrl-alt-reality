@@ -18,6 +18,9 @@ export function DimensionalBreak() {
   const implosionFlashRef = useRef<HTMLDivElement>(null);
   
   const [diagnostics, setDiagnostics] = useState("");
+  const [gravityRestartText, setGravityRestartText] = useState("");
+  const gravityTextRef = useRef<HTMLDivElement>(null);
+  const gravityContainerRef = useRef<HTMLDivElement>(null);
 
   // Impact texts refs
   const impactRef1 = useRef<HTMLParagraphElement>(null);
@@ -225,7 +228,46 @@ export function DimensionalBreak() {
     }
   }, [state.phase]);
 
-  if (state.phase !== "FUTURE_TEASER" && state.phase !== "DIMENSIONAL_BREAK" && state.phase !== "CORE_INTERACTIVE" && state.phase !== "CORE_BREAKING" && state.phase !== "GRAVITY_FAILURE") {
+  useEffect(() => {
+    if (state.phase === "GRAVITY_FAILURE") {
+      const tl = gsap.timeline();
+      tl.to({}, { duration: 1.5 });
+      tl.add(() => {
+        dispatch({ type: "SET_PHASE", payload: "GRAVITY_RESTART" });
+      });
+    }
+  }, [state.phase, dispatch]);
+
+  useEffect(() => {
+    if (state.phase === "GRAVITY_RESTART") {
+      const tl = gsap.timeline();
+      
+      tl.add(() => setGravityRestartText("Attempting gravity restart..."), 0.5);
+      tl.add(() => setGravityRestartText("Attempting gravity restart...\nLoading physics engine..."), 1.5);
+      tl.add(() => setGravityRestartText("Attempting gravity restart...\nLoading physics engine...\nFAILED."), 2.5);
+      
+      // Text floats away
+      tl.to(gravityTextRef.current, {
+        y: -150,
+        opacity: 0,
+        rotationZ: () => (Math.random() - 0.5) * 10,
+        rotationX: () => (Math.random() - 0.5) * 20,
+        duration: 3.0,
+        ease: "power2.out"
+      }, 3.5);
+      
+      tl.to(gravityContainerRef.current, {
+        backgroundColor: "transparent",
+        duration: 2.0,
+      }, 4.0);
+
+      tl.add(() => {
+        dispatch({ type: "SET_PHASE", payload: "SCENE_05_ACTIVE" });
+      }, 5.5);
+    }
+  }, [state.phase, dispatch]);
+
+  if (state.phase !== "FUTURE_TEASER" && state.phase !== "DIMENSIONAL_BREAK" && state.phase !== "CORE_INTERACTIVE" && state.phase !== "CORE_BREAKING" && state.phase !== "GRAVITY_FAILURE" && state.phase !== "GRAVITY_RESTART") {
     return null;
   }
 
@@ -332,8 +374,8 @@ export function DimensionalBreak() {
       />
 
       {/* GRAVITY FAILURE placeholder & Diagnostics */}
-      {(state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE") && (
-        <div className={cn("absolute inset-0 bg-black flex flex-col items-center justify-center pointer-events-none z-[200]", state.phase === "GRAVITY_FAILURE" ? "opacity-100" : "opacity-0")} style={{ opacity: diagnostics ? 1 : undefined }}>
+      {(state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE" || state.phase === "GRAVITY_RESTART") && (
+        <div ref={gravityContainerRef} className={cn("absolute inset-0 bg-black flex flex-col items-center justify-center pointer-events-none z-[200]", (state.phase === "GRAVITY_FAILURE" || state.phase === "GRAVITY_RESTART") ? "opacity-100" : "opacity-0")} style={{ opacity: diagnostics ? 1 : undefined }}>
           {diagnostics ? (
             <div className="absolute top-8 left-8 text-terminal font-mono text-xs whitespace-pre-wrap leading-relaxed opacity-75">
               {diagnostics}
@@ -347,6 +389,10 @@ export function DimensionalBreak() {
                 REALITY.OS // ERROR 05
               </p>
             </>
+          ) : state.phase === "GRAVITY_RESTART" ? (
+             <div ref={gravityTextRef} className="text-terminal font-mono text-sm whitespace-pre-wrap leading-relaxed opacity-75" style={{ perspective: 1000, transformStyle: "preserve-3d" }}>
+                {gravityRestartText}<span className="animate-pulse">_</span>
+             </div>
           ) : null}
         </div>
       )}

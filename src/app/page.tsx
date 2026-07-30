@@ -6,6 +6,7 @@ import { SystemBoot } from "@/components/scenes/SystemBoot/SystemBoot";
 import { Terminal } from "@/components/scenes/Terminal/Terminal";
 import { RetroDesktop } from "@/components/scenes/RetroDesktop/RetroDesktop";
 import { DimensionalBreak } from "@/components/scenes/DimensionalBreak/DimensionalBreak";
+import { Scene05Overlay } from "@/components/scenes/Scene05/Scene05Overlay";
 
 
 // Dynamically import WebGL to prevent SSR issues
@@ -21,7 +22,7 @@ export default function Home() {
     <main className="relative flex flex-col items-center justify-center h-[100dvh] w-full overflow-hidden bg-black selection:bg-terminal selection:text-black">
       
       {/* 3D Dimensional Teaser (Hidden until FUTURE_TEASER) */}
-      {(state.phase === "FUTURE_TEASER" || state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE" || process.env.NODE_ENV === "development") && (
+      {(state.phase === "FUTURE_TEASER" || state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE" || state.phase === "GRAVITY_RESTART" || state.phase === "SCENE_05_ACTIVE" || state.phase === "SCENE_05_ENDING" || state.phase === "SCENE_06_HINT" || process.env.NODE_ENV === "development") && (
         <WebGLCanvas />
       )}
 
@@ -29,12 +30,13 @@ export default function Home() {
       <div className="absolute inset-0 z-10 w-full h-full">
         {state.phase === "BOOT" && <SystemBoot />}
         {state.phase === "TERMINAL" && <Terminal />}
-        {(state.phase === "DESKTOP" || state.phase === "FUTURE_TEASER" || state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE") && (
+        {(state.phase === "DESKTOP" || state.phase === "FUTURE_TEASER" || state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE" || state.phase === "GRAVITY_RESTART") && (
           <RetroDesktop />
         )}
-        {(state.phase === "FUTURE_TEASER" || state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE") && (
+        {(state.phase === "FUTURE_TEASER" || state.phase === "DIMENSIONAL_BREAK" || state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "GRAVITY_FAILURE" || state.phase === "GRAVITY_RESTART") && (
           <DimensionalBreak />
         )}
+        <Scene05Overlay />
       </div>
 
       {/* Development controls */}

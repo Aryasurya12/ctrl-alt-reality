@@ -6,7 +6,11 @@ export type ExperiencePhase =
   | "DIMENSIONAL_BREAK" 
   | "CORE_INTERACTIVE"
   | "CORE_BREAKING" 
-  | "GRAVITY_FAILURE";
+  | "GRAVITY_FAILURE"
+  | "GRAVITY_RESTART"
+  | "SCENE_05_ACTIVE"
+  | "SCENE_05_ENDING"
+  | "SCENE_06_HINT";
 
 export interface ExperienceState {
   phase: ExperiencePhase;
@@ -28,6 +32,10 @@ export interface ExperienceState {
   hasDraggedCore: boolean;
   hasHeldCore: boolean;
   hasReleasedCore: boolean;
+
+  // Scene 05 Interaction State
+  scene05InteractionStep: number; // 0: Start, 1: Move Hint, 2: Grab Hint, 3: Throw Hint
+  objectsThrownCount: number;
 }
 
 export type ExperienceAction = {

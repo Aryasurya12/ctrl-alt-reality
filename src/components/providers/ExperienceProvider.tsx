@@ -16,7 +16,9 @@ type Action =
   | { type: "FOCUS_WINDOW"; payload: string }
   | { type: "SELECT_ICON"; payload: string | null }
   | { type: "SET_HAS_SEEN_DEMO"; payload: boolean }
-  | { type: "SET_CORE_INTERACTION"; payload: "drag" | "hold" | "release" };
+  | { type: "SET_CORE_INTERACTION"; payload: "drag" | "hold" | "release" }
+  | { type: "SET_SCENE05_INTERACTION"; payload: number }
+  | { type: "INCREMENT_OBJECTS_THROWN" };
 
 const initialState: ExperienceState = {
   phase: "BOOT",
@@ -34,6 +36,8 @@ const initialState: ExperienceState = {
   hasDraggedCore: false,
   hasHeldCore: false,
   hasReleasedCore: false,
+  scene05InteractionStep: 0,
+  objectsThrownCount: 0,
 };
 
 function experienceReducer(state: ExperienceState, action: Action): ExperienceState {
@@ -88,6 +92,10 @@ function experienceReducer(state: ExperienceState, action: Action): ExperienceSt
       if (action.payload === "hold") return { ...state, hasHeldCore: true };
       if (action.payload === "release") return { ...state, hasReleasedCore: true };
       return state;
+    case "SET_SCENE05_INTERACTION":
+      return { ...state, scene05InteractionStep: action.payload };
+    case "INCREMENT_OBJECTS_THROWN":
+      return { ...state, objectsThrownCount: state.objectsThrownCount + 1 };
     default:
       return state;
   }

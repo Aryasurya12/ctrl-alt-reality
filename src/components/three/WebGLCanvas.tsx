@@ -3,18 +3,19 @@
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import { DimensionalScene } from "./dimensional/DimensionalScene";
+import { GravityFailureScene } from "../scenes/Scene05/GravityFailureScene";
 import { useExperience } from "@/components/providers/ExperienceProvider";
 import { cn } from "@/lib/utils";
 
 export function WebGLCanvas() {
   const { state } = useExperience();
   
-  const isInteractive = state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING";
+  const isInteractive = state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "SCENE_05_ACTIVE";
 
   return (
     <div className={cn(
       "fixed inset-0 w-full h-full pointer-events-none",
-      state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" ? "z-[60]" : "z-0"
+      state.phase === "CORE_INTERACTIVE" || state.phase === "CORE_BREAKING" || state.phase === "SCENE_05_ACTIVE" || state.phase === "SCENE_05_ENDING" ? "z-[60]" : "z-0"
     )}>
       <Canvas
         dpr={[1, 2]}
@@ -28,6 +29,7 @@ export function WebGLCanvas() {
       >
         <Suspense fallback={null}>
           <DimensionalScene />
+          <GravityFailureScene />
         </Suspense>
       </Canvas>
     </div>
